@@ -1,0 +1,57 @@
+Conception de la base de données: bulletin_db (SGBD = Mysql)
+(Par TARGOTO CHRISTIAN le 03/06/2021)
+
+create database bulletin_db character set 'utf8';
+
+use bulletin_db;
+
+create table tb_eleve(
+num_eleve int primary key,
+nom varchar(150) not null,
+classe varchar(30) not null,
+sexe varchar(20) not null)
+engine=innodb;
+
+create table tb_matiere(
+nom_mat varchar(100) primary key,
+coeff smallint not null)
+engine=innodb;
+
+
+create table tb_notes(
+id int auto_increment primary key,
+num_elv int not null,
+matiere varchar(100) not null,
+devoir1 decimal(4,2),
+devoir2 decimal(4,2),
+compo decimal(4,2),
+trimestre smallint not null,
+)
+engine=innodb;
+
+
+
+alter table tb_notes add constraint fk1 foreign key(num_elv)
+references tb_eleve(num_eleve);
+
+alter table tb_notes add constraint fk2 foreign key(matiere)
+references tb_matiere(nom_mat);
+
+create view v_notes as 
+select matiere,coeff,num_elv,nom,sexe,classe,devoir1,devoir2,compo,trimestre,id from tb_eleve
+inner join tb_notes on tb_eleve.num_eleve=tb_notes.num_elv inner join tb_matiere
+on tb_notes.matiere=tb_matiere.nom_mat;
+
+
+create view v2_notes as
+select classe,trimestre,matiere,num_elv,round((devoir1+devoir2)/2,2) as moyds,compo,
+round(((devoir1+devoir2)/2+compo)/2,2) as moydeux,coeff,
+round(((devoir1+devoir2)/2+compo)/2,2)*coeff as moycoeff from v_notes; 
+
+
+
+create view v_rang as 
+select classe,trimestre,num_elv,round(sum(moycoeff)/sum(coeff),2) as moyg from v2_notes
+group by num_elv,trimestre;
+
+
